@@ -40,7 +40,7 @@ public class RTPPlayer {
         this.type = type;
     }
 
-    void randomlyTeleport(CommandSender sendi) {
+    void randomlyTeleport(CommandSender sendi, Runnable callback) {
         if (attempts >= settings.maxAttempts) //Cancel out, too many tries
             metMax(sendi, player);
         else { //Try again to find a safe location
@@ -49,7 +49,7 @@ public class RTPPlayer {
             Bukkit.getServer().getPluginManager().callEvent(event);
             //Async Location finder
             if (event.isCancelled()) {
-                randomlyTeleport(sendi);
+                randomlyTeleport(sendi, callback);
                 attempts++;
                 return;
             }
@@ -72,11 +72,11 @@ public class RTPPlayer {
                         CompletableFuture<Chunk> chunk = PaperLib.getChunkAtAsync(loc);
                         chunk.thenAccept(result -> {
                             //BetterRTP.debug("Checking location for " + p.getName());
-                            attempt(sendi, loc);
+                            attempt(sendi, loc,callback);
                         });
                     } catch (IllegalStateException e) {
                         //Legacy non-async support
-                        attempt(sendi, loc);
+                        attempt(sendi, loc, callback);
                     } catch (Throwable ignored) {
 
                     }
@@ -85,7 +85,7 @@ public class RTPPlayer {
         }
     }
 
-    private void attempt(CommandSender sendi, Location loc) {
+    private void attempt(CommandSender sendi, Location loc, Runnable callback) {
         Location tpLoc;
         tpLoc = RandomLocation.getSafeLocation(worldPlayer.getWorldtype(), worldPlayer.getWorld(), loc, worldPlayer.getMinY(), worldPlayer.getMaxY(), worldPlayer.getBiomes());
         //attemptedLocations.add(loc);
@@ -98,14 +98,16 @@ public class RTPPlayer {
                     getPl().getCooldowns().add(player, worldPlayer.getWorld());
                 tpLoc.setYaw(player.getLocation().getYaw());
                 tpLoc.setPitch(player.getLocation().getPitch());
-                AsyncHandler.sync(() -> settings.teleport.sendPlayer(sendi, player, tpLoc, worldPlayer, attempts, type));
+                AsyncHandler.sync(() -> {
+                    settings.teleport.sendPlayer(sendi, player, tpLoc, worldPlayer, attempts, type,callback);
+                });
             } else {
                 if (worldPlayer.getPlayerInfo().applyCooldown)
                     getPl().getCooldowns().removeCooldown(player, worldPlayer.getWorld());
                 getPl().getPInfo().getRtping().remove(player);
             }
         } else {
-            randomlyTeleport(sendi);
+            randomlyTeleport(sendi,callback);
             QueueHandler.remove(loc);
         }
     }

@@ -101,7 +101,29 @@ public class HelperRTP {
         }
 
         //Start teleport sequence!
-        BetterRTP.getInstance().getRTP().start(pWorld);
+        BetterRTP.getInstance().getRTP().start(pWorld,null);
+    }
+
+    public static void tp(@NotNull Player player,
+                          CommandSender sendi,
+                          @NotNull RTPSetupInformation setup_info,Runnable callback) {
+        //RTP request cancelled reason
+        WorldPlayer pWorld = getPlayerWorld(setup_info);
+        RTP_ERROR_REQUEST_REASON cantReason = HelperRTP_Check.canRTP(player, sendi, pWorld, setup_info.getPlayerInfo());
+        if (cantReason != null) {
+            String msg = cantReason.getMsg().get(player, null);
+            if (cantReason == RTP_ERROR_REQUEST_REASON.COOLDOWN) {
+                msg = msg.replace(Placeholders.COOLDOWN.name, HelperDate.total(HelperRTP_Check.getCooldown(player, pWorld)));
+                msg = msg.replace(Placeholders.TIME.name, HelperDate.total(HelperRTP_Check.getCooldown(player, pWorld)));
+            }
+            Message_RTP.sms(player, msg, pWorld);
+            if (sendi != player)
+                Message_RTP.sms(sendi, msg, pWorld);
+            return;
+        }
+
+        //Start teleport sequence!
+        BetterRTP.getInstance().getRTP().start(pWorld,callback);
     }
 
     public static World getActualWorld(Player player,

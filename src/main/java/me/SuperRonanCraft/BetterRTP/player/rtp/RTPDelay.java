@@ -72,7 +72,7 @@ class RTPDelay implements Listener {
         return () -> {
             HandlerList.unregisterAll(cls);
             if (getPl().getPInfo().getRtping().containsKey(rtp.getPlayer()))
-                rtp.randomlyTeleport(sendi);
+                rtp.randomlyTeleport(sendi,null);
         };
     }
 

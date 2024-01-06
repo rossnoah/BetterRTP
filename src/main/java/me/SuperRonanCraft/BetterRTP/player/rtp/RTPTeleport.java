@@ -39,7 +39,7 @@ public class RTPTeleport {
 //    }
 
     void sendPlayer(final CommandSender sendi, final Player p, final Location location, final WorldPlayer wPlayer,
-                    final int attempts, RTP_TYPE type) throws NullPointerException {
+                    final int attempts, RTP_TYPE type, Runnable callback) throws NullPointerException {
         Location oldLoc = p.getLocation();
         loadingTeleport(p, sendi); //Send loading message to player who requested
         //List<CompletableFuture<Chunk>> asyncChunks = getChunks(location); //Get a list of chunks
@@ -63,6 +63,10 @@ public class RTPTeleport {
                     if (type == RTP_TYPE.JOIN) //RTP Type was Join
                         if (BetterRTP.getInstance().getSettings().isRtpOnFirstJoin_SetAsRespawn()) //Save as respawn is enabled
                             p.setBedSpawnLocation(loc, true); //True means to force a respawn even without a valid bed
+
+                    if(callback!=null) {
+                        callback.run();
+                    }
                 }
             });
         } catch (Exception e) {

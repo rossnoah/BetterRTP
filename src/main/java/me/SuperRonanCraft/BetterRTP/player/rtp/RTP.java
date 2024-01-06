@@ -69,18 +69,18 @@ public class RTP {
     }
 
     public void start(RTPSetupInformation setup_info) {
-        start(HelperRTP.getPlayerWorld(setup_info));
+        start(HelperRTP.getPlayerWorld(setup_info),null);
     }
 
-    public void start(WorldPlayer pWorld) {
+    public void start(WorldPlayer pWorld, Runnable callback) {
         RTP_SettingUpEvent setup = new RTP_SettingUpEvent(pWorld.getPlayer());
         Bukkit.getPluginManager().callEvent(setup);
         if (setup.isCancelled())
             return;
-        rtp(pWorld.getSendi(), pWorld, pWorld.getRtp_type());
+        rtp(pWorld.getSendi(), pWorld, pWorld.getRtp_type(),callback);
     }
 
-    private void rtp(CommandSender sendi, WorldPlayer pWorld, RTP_TYPE type) {
+    private void rtp(CommandSender sendi, WorldPlayer pWorld, RTP_TYPE type,Runnable callback){
         //Cooldown
         Player p = pWorld.getPlayer();
         getPl().getPInfo().getRtping().put(p, true); //Cache player so they cant run '/rtp' again while rtp'ing
@@ -91,7 +91,7 @@ public class RTP {
             new RTPDelay(sendi, rtpPlayer, delayTime, cancelOnMove, cancelOnDamage);
         } else {
             if (!teleport.beforeTeleportInstant(sendi, p))
-                rtpPlayer.randomlyTeleport(sendi);
+                rtpPlayer.randomlyTeleport(sendi,callback);
         }
     }
 
